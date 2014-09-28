@@ -27,17 +27,21 @@ class PDFDumper(object):
         for page in self.reader.pages:
             try:
                 resources = page['/Resources']
-            except AttributeError:
+            except KeyError:
                 continue
             try:
                 xobject = resources['/XObject']
-            except AttributeError:
+            except KeyError:
                 # Are there types other than XObject?
                 continue
             for res in xobject.itervalues():
                 # In case it's indirect
                 res = res.getObject()
-                name = self.resource_name(res)
+                try:
+                    name = self.resource_name(res)
+                except (NotImplementedError, AssertionError) as ex:
+                    print('Warning: {}'.format(ex))
+                    continue
                 if name in extracted:
                     continue
                 extracted.add(name)
@@ -45,9 +49,21 @@ class PDFDumper(object):
 
     def get_image(self, resource):
         dimensions = (resource['/Width'], resource['/Height'])
-        im = Image.new(
-            self._image_colorspaces[resource['/ColorSpace']],
-            dimensions)
+        colorspace = resource['/ColorSpace']
+        if isinstance(colorspace, basestring):
+            # Basic image
+            colorspace = self._image_colorspaces[colorspace]
+            im = Image.new(colorspace, dimensions)
+            im.frombytes(resource.getData())
+            return im
+        # Paletteized image
+        if colorspace[0] != '/Indexed':
+            print('Not implemented, image type: {}{}'.format(
+                colorspace[0], colorspace[1]))
+            return None
+        palette = colorspace[3].getObject().getData()
+        im = Image.new('P', dimensions)
+        im.putpalette(palette)
         im.frombytes(resource.getData())
         return im
 
@@ -61,7 +77,8 @@ class PDFDumper(object):
                 im = self.get_image(res)
                 im.save('{}.png'.format(self.resource_name(res)))
                 continue
-            print('Resource: {}/{}'.format(res['/Type'], res['/Subtype']))
+            print('Unknown Resource: {}/{}'.format(
+                res['/Type'], res['/Subtype']))
 
 
 if __name__ == '__main__':
