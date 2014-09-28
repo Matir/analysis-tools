@@ -25,5 +25,5 @@ if __name__ == '__main__':
 
   except IndexError:
 
-    print('Usage: rot_alpha.py <alpha numeric data> <int to rotate>')
+    print('Usage: rot_alpha.py <alpha data> <int to rotate>')
     sys.exit(1)
