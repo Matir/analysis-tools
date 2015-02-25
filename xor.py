@@ -5,7 +5,7 @@ import sys
 
 class xor():
 
-  def xor(self, orginal_file, xor_var, new_file):
+  def xor(self, orginal_file, new_file, xor_var):
     l = len(xor_var)
     data = bytearray(open(orginal_file, 'rb').read())
     result = bytearray((
@@ -15,16 +15,22 @@ class xor():
     localFile.write(result)
     localFile.close()
 
+  def hexToByte(self, hexStr):
+    bytes = []
+    hexStr = ''.join( hexStr.split(" ") )
+    for i in range(0, len(hexStr), 2):
+      bytes.append( chr( int (hexStr[i:i+2], 16 ) ) )
+    return bytes
+
 
 if __name__ == '__main__':
   try:
+    transform = xor()
     orginal_file = sys.argv[1]
     new_file = sys.argv[2]
-    ##xor_var bytes are currently hardcoded
-    xor_var = bytearray([0xde,0xad,0x13,0x37])
-    transform = xor()
-    transform.xor(orginal_file, xor_var, new_file)
+    bytes = transform.hexToByte(sys.argv[3])
+    xor_var = bytearray(bytes)
+    transform.xor(orginal_file, new_file, xor_var)
   except IndexError:
-    print('Usage: xor.py <input_file> <output_file>')
-    print('Note: xor byte values are currently hardcoded!')
+    print('Usage: xor.py <input_file> <output_file> <"XOR hex bytes">')
     sys.exit(1)
