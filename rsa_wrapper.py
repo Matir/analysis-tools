@@ -1,6 +1,6 @@
 from Crypto.PublicKey import RSA 
 
-class RSAwrapper():
+class rsa_wrapper():
   
   def keygen(self):
     key = RSA.generate(2048, e=65537) 
@@ -11,7 +11,7 @@ class RSAwrapper():
 
 if __name__ == '__main__':
   try:
-    rsa = RSAwrapper()
+    rsa = rsa_wrapper()
     rsa.keygen()
   except:
     print "error"
