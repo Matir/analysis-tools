@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# basic rsa functions
 import sys
 import zlib
 import base64
