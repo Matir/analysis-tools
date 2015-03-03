@@ -5,6 +5,7 @@ import zlib
 import base64
 from Crypto.PublicKey import RSA 
 from Crypto.Cipher import PKCS1_OAEP
+from Crypto.Hash import SHA256
 
 
 class rsa_wrapper():
@@ -39,20 +40,38 @@ class rsa_wrapper():
     decrypted = zlib.decompress(decrypted)
     return decrypted
 
+  def sign(self, private, plaintext):
+    rsakey = RSA.importKey(private)
+    hashed = SHA256.new(plaintext).digest()
+    signature = rsakey.sign(hashed, '')
+    return signature
+
+  def verify(self, public, signature, plaintext):
+  	rsakey = RSA.importKey(public)
+  	hashed = SHA256.new(plaintext).digest()
+  	verified = rsakey.verify(hashed, signature)
+  	return verified
+    
 
 if __name__ == '__main__':
   try:
     message = sys.argv[1]
     rsa = rsa_wrapper()
     public, private = rsa.keygen()
-    print public
-    print private
+    print "Public Key is:\n{}\n".format(public)
+    print "Private Key is:\n{}\n".format(private)
 
     encrypted_message = rsa.encrypt(public, message)
-    print encrypted_message
+    print "Test message encrypted with public key is:\n{}\n".format(encrypted_message)
 
     decrypted_message = rsa.decrypt(private, encrypted_message)
-    print decrypted_message
+    print "Testing decryption function to return orginal message:\n{}\n".format(decrypted_message)
+
+    signature = rsa.sign(private, message)
+    print "Plaintext message signature is:\n{}\n".format(signature)
+
+    verified = rsa.verify(public, signature, message)
+    print "Verifying the plaintext against the signature results in:\n{}\n".format(verified)
 
   except IndexError:
     print "python rsa_wrapper.py <Test message to encrypt>"
